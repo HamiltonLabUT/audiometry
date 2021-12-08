@@ -36,4 +36,8 @@ You can also just do this to get audiograms for all files in a directory. Might 
 >>> audiometry.main('/path/to/audiograms')
 ```
 
+## In progress ##
+
+Getting out QuickSIN data in addition to pure tone data is in progress but not yet implemented. 
+
 Email Liberty Hamilton (liberty.hamilton@austin.utexas.edu) with any questions. 
