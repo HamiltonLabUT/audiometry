@@ -109,8 +109,8 @@ def plot_audiogram(audiometry, fig=None, banana=None):
         fig=plt.figure()
     if banana:
         plot_speechbanana('Both')
-    plt.plot(audiometry['Left'].keys(), audiometry['Left'].values(),'x', color='b')
-    plt.plot(audiometry['Right'].keys(), audiometry['Right'].values(), 'o', fillstyle='none', color='r')
+    plt.plot(audiometry['Left'].keys(), audiometry['Left'].values(), 'x-', color='b')
+    plt.plot(audiometry['Right'].keys(), audiometry['Right'].values(), 'o-', fillstyle='none', color='r')
     plt.gca().set_xscale('log')
     plt.gca().axis([100, 10000, -10, 120])
     plt.gca().set_xticks([125,250,500,1000,2000,4000,8000])
@@ -143,4 +143,6 @@ def main(audiometry_dir):
         plot_audiogram(audiometry, fig=fig, banana=True)
         plt.title(subject)
     plt.tight_layout()
+    plt.show()
     #plot_speechbanana('Both')
+    return audiometry
