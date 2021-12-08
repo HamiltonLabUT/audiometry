@@ -25,4 +25,15 @@ To plot this, you can use the function `plot_audiogram()`:
 >>> plot_audiogram(audiogram, fig=fig, banana='Both')
 ```
 
-Email Liberty Hamilton (liberty.hamilton@austin.utexas.edu) with any questions.
+## Quick Start ##
+
+You can also just do this to get audiograms for all files in a directory. Might look ugly, YMMV.
+
+```
+>>> import audiometry
+>>> from matplotlib import pyplot as plt
+>>> plt.ion()
+>>> audiometry.main('/path/to/audiograms')
+```
+
+Email Liberty Hamilton (liberty.hamilton@austin.utexas.edu) with any questions. 
