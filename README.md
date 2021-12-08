@@ -27,7 +27,7 @@ To plot this, you can use the function `plot_audiogram()`:
 
 ## Quick Start ##
 
-You can also just do this to get audiograms for all files in a directory. Might look ugly, YMMV.
+You can also just do this to get audiograms for all files in a directory. Might look ugly, YMMV. Assumes you have all your `*.xml` files in a directory called `/path/to/audiograms'`.
 
 ```
 >>> import audiometry
