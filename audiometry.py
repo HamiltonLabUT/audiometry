@@ -93,7 +93,24 @@ def plot_speechbanana(earside):
     thresh_bottom = np.array([30,46,57,62,63,62,60,56,53,48,44])
     plt.fill_between(freqs, thresh_top, y2=thresh_bottom, color=clrs[earside], alpha=0.5, edgecolor=None)
 
-def plot_audiogram(audiometry, fig=None, banana=None):
+
+def plot_classification():
+    levels = {'Normal': [-10,15,'#9d9bc1'],
+            'Slight': [15,25,'#98aed0'],
+            'Mild': [25,40,'#a5c3df'],
+            'Moderate': [40,55,'#a8d1d9'],
+            'Moderately Severe': [55,70,'#88c1cc'],
+            'Severe': [70,90,'#7ab9b3'],
+            'Profound': [90,120,'#79b7a4']}
+
+    for severity in levels.keys():
+        min_db = levels[severity][0]
+        max_db = levels[severity][1]
+        clr = levels[severity][2]
+        plt.fill_between(x=[100,10000], y1=[min_db, min_db], y2=[max_db, max_db], color=clr, alpha=1.0)
+        plt.text(100, max_db-5, severity, color='k', fontsize=8)
+
+def plot_audiogram(audiometry, fig=None, banana=None, classification=False):
     '''
     Plot the audiogram given an audiometry dict() from parse_audiometry
     Input:
@@ -103,12 +120,19 @@ def plot_audiogram(audiometry, fig=None, banana=None):
         banana [str] : Choose from [None, 'Left', 'Right', 'Both']. If None, not shown. 
                        If 'Left', 'Right', or 'Both' the "speech banana" is shown in
                        blue, red, or gray, respectively.
+        classification [bool] : True/False, Whether to plot classification of hearing levels
+                                e.g. Normal, Slight, Mild, Moderate, Moderately Severe,
+                                Severe, and Profound.
 
     '''
     if fig is None:
         fig=plt.figure()
+    if classification:
+        plot_classification()
     if banana:
         plot_speechbanana('Both')
+
+
     plt.plot(audiometry['Left'].keys(), audiometry['Left'].values(), 'x-', color='b')
     plt.plot(audiometry['Right'].keys(), audiometry['Right'].values(), 'o-', fillstyle='none', color='r')
     plt.gca().set_xscale('log')
@@ -121,13 +145,15 @@ def plot_audiogram(audiometry, fig=None, banana=None):
     plt.gca().invert_yaxis()
 
 
-def main(audiometry_dir):
+def main(audiometry_dir, banana='Both', classification=True):
     '''
     Create a figure with all of the pure tone audiometry results for xml
     files within a directory [audiometry_dir]
 
     Inputs:
         audiometry_dir [str]: Path to your audiometry xml files
+        banana [None,'Left','Right', or 'Both'] : whether to plot speech banana
+        classification [bool] : True/False, whether to show hearing classification.
     '''
     #fig = plt.figure(1);
     plt.figure()
@@ -140,7 +166,7 @@ def main(audiometry_dir):
         fig = plt.subplot(nrows, ncols, fi+1)
         print(file)
         audiometry = parse_audiometry(file)
-        plot_audiogram(audiometry, fig=fig, banana=True)
+        plot_audiogram(audiometry, fig=fig, banana=banana, classification=classification)
         plt.title(subject)
     plt.tight_layout()
     plt.show()
