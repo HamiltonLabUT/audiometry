@@ -22,8 +22,13 @@ To plot this, you can use the function `plot_audiogram()`:
 >>> plt.ion()
 >>> audiogram = parse_audiometry('/path/to/subjid_20211101_audiometry.xml')
 >>> fig = plt.figure(1)
->>> plot_audiogram(audiogram, fig=fig, banana='Both')
+>>> plot_audiogram(audiogram, fig=fig, banana='Both', classification=True)
+>>> plt.title('subj_id')
+>>> plt.savefig('Example_audiogram.png')
+>>> plt.show()
 ```
+
+![](Example_audiogram.png)
 
 ## Quick Start ##
 
