@@ -8,6 +8,8 @@ import xml.etree.ElementTree as ET
 from copy import copy
 import re
 import numpy as np
+import matplotlib
+matplotlib.rcParams['ps.fonttype'] = 42
 from matplotlib import pyplot as plt
 import glob
 
@@ -50,7 +52,7 @@ def parse_audiometry(xml_file):
     r = tree.getroot()
 
     QuickSIN = dict()  # TBD... in progress
-    audiometry = dict()
+    audiogram = dict()
 
     d = dictify(r, root=True)
 
@@ -64,17 +66,17 @@ def parse_audiometry(xml_file):
             # for the left ear, one for the right ear.
             for s in np.arange(len(measured_data)): 
                 earside = measured_data[s]['Tone'][0]['Earside'][0]['_text']
-                audiometry[earside] = {}  # initialize the dictionary
+                audiogram[earside] = {}  # initialize the dictionary
                 # Find the number of tones that were played to this participant
                 nfreqs = len(measured_data[s]['Tone'][0]['TonePoint'])
                 # Loop through the tones and find the frequency and measured thresholds,
-                # then save these to the audiometry dictionary for the relevant [earside]
+                # then save these to the audiogram dictionary for the relevant [earside]
                 for tone in np.arange(nfreqs):
                     freq = int(measured_data[s]['Tone'][0]['TonePoint'][tone]['Frequency'][0]['_text'])
                     threshold = int(measured_data[s]['Tone'][0]['TonePoint'][tone]['IntensityUT'][0]['_text'])
-                    audiometry[earside][freq] = threshold
+                    audiogram[earside][freq] = threshold
 
-    return audiometry
+    return audiogram
 
 
 def plot_speechbanana(earside):
@@ -94,7 +96,7 @@ def plot_speechbanana(earside):
     plt.fill_between(freqs, thresh_top, y2=thresh_bottom, color=clrs[earside], alpha=0.5, edgecolor=None)
 
 
-def plot_classification():
+def plot_classification(fontsize='small'):
     levels = {'Normal': [-10,15,'#9d9bc1'],
             'Slight': [15,25,'#98aed0'],
             'Mild': [25,40,'#a5c3df'],
@@ -108,13 +110,14 @@ def plot_classification():
         max_db = levels[severity][1]
         clr = levels[severity][2]
         plt.fill_between(x=[100,10000], y1=[min_db, min_db], y2=[max_db, max_db], color=clr, alpha=1.0)
-        plt.text(100, max_db-5, severity, color='k', fontsize=8)
+        plt.text(100, max_db-5, severity, color='k', fontsize=fontsize)
 
-def plot_audiogram(audiometry, fig=None, banana=None, classification=False):
+def plot_audiogram(audiogram, fig=None, banana=None, classification=False):
     '''
-    Plot the audiogram given an audiometry dict() from parse_audiometry
+    Plot the audiogram given an audiogram dict() from parse_audiometry
     Input:
-        audiometry [dict] : generate this from the function parse_audiometry()
+        audiogram [dict] : generate this from the function parse_audiometry(). Can be a 
+                           single dictionary or a list of dictionaries, each from parse_audiometry()
         fig [handle] : figure handle, if you want to plot to the same figure or axis. 
                        If none, creates a new figure.
         banana [str] : Choose from [None, 'Left', 'Right', 'Both']. If None, not shown. 
@@ -132,9 +135,30 @@ def plot_audiogram(audiometry, fig=None, banana=None, classification=False):
     if banana:
         plot_speechbanana('Both')
 
+    if type(audiogram) == dict:
+        plt.plot(audiogram['Left'].keys(), audiogram['Left'].values(), 'x-', color='b', label='Left')
+        plt.plot(audiogram['Right'].keys(), audiogram['Right'].values(), 'o-', fillstyle='none', color='r', label='Right')
+    
+    elif type(audiogram) == list:
+        print("Plotting average audiograms")
+        x_left=audiogram[0]['Left'].keys()
+        x_right=audiogram[0]['Right'].keys()
+        y_left, y_right = [], []
+        for n in np.arange(len(audiogram)):
+            y_left.append(list(audiogram[n]['Left'].values()))
+            y_right.append(list(audiogram[n]['Right'].values()))
+        y_left = np.array(y_left)
+        y_right = np.array(y_right)
+        y_left_mean = y_left.mean(0)
+        y_right_mean = y_right.mean(0)
+        y_left_stderr = y_left.std(0)/np.sqrt(y_left.shape[0])
+        y_right_stderr = y_right.std(0)/np.sqrt(y_right.shape[0])
 
-    plt.plot(audiometry['Left'].keys(), audiometry['Left'].values(), 'x-', color='b', label='Left')
-    plt.plot(audiometry['Right'].keys(), audiometry['Right'].values(), 'o-', fillstyle='none', color='r', label='Right')
+        plt.fill_between(x_left, y_left_mean+y_left_stderr, y_left_mean-y_left_stderr, color='b', alpha=0.5)
+        plt.plot(x_left, y_left_mean, 'x-', color='b', label='Left')
+        plt.fill_between(x_right, y_right_mean+y_right_stderr, y_right_mean-y_right_stderr, color='r', alpha=0.5)
+        plt.plot(x_right, y_right_mean, 'o-', fillstyle='none', color='r', label='Right')
+        
     plt.gca().set_xscale('log')
     plt.gca().axis([100, 10000, -10, 120])
     plt.gca().set_xticks([125,250,500,1000,2000,4000,8000])
@@ -146,7 +170,7 @@ def plot_audiogram(audiometry, fig=None, banana=None, classification=False):
     plt.legend(loc='lower right')
 
 
-def main(audiometry_dir, banana='Both', classification=True):
+def main(audiometry_dir, banana='Both', classification=True, average=True, figname=None, title=''):
     '''
     Create a figure with all of the pure tone audiometry results for xml
     files within a directory [audiometry_dir]
@@ -156,20 +180,31 @@ def main(audiometry_dir, banana='Both', classification=True):
         banana [None,'Left','Right', or 'Both'] : whether to plot speech banana
         classification [bool] : True/False, whether to show hearing classification.
     '''
-    #fig = plt.figure(1);
-    plt.figure()
+
     files = glob.glob(f'{audiometry_dir}/*.xml')
 
-    nrows = np.floor(np.sqrt(len(files)))
-    ncols = np.ceil(len(files)/nrows)
+    nrows = int(np.floor(np.sqrt(len(files))))
+    ncols = int(np.ceil(len(files)/nrows))
+    audiograms = []
     for fi, file in enumerate(files):
         subject = file.split('/')[-1].split('_')[0]
-        fig = plt.subplot(nrows, ncols, fi+1)
         print(file)
-        audiometry = parse_audiometry(file)
-        plot_audiogram(audiometry, fig=fig, banana=banana, classification=classification)
-        plt.title(subject)
+        audiogram = parse_audiometry(file)
+        if average == False:
+            fig = plt.subplot(nrows, ncols, fi+1)
+            plot_audiogram(audiogram, fig=fig, banana=banana, classification=classification)
+            plt.title(subject)
+        audiograms.append(audiogram)
+    if average:
+        fig = plt.figure()
+        plot_audiogram(audiograms, fig=fig, banana=banana, classification=classification)
+        if title == '':
+            title = 'Average audiogram'
+        plt.title(title)
+
     plt.tight_layout()
+    if figname:
+        plt.savefig(f'{audiometry_dir}/{figname}')
+        
     plt.show()
-    #plot_speechbanana('Both')
-    return audiometry
+    return audiograms
