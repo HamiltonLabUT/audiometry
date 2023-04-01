@@ -4,7 +4,7 @@ Python scripts for plotting audiograms and related data from [Interacoustics Equ
 To run, this assumes you have a directory with .xml files that were exported from the Otoaccess software. 
 Ours are named `[subj_id]_[date]_audiometry.xml`. If you name them this way, the function `main()` will show the subject ID as the title of each subplot.
 
-The function `parse_audiometry()` takes in an xml file and outputs a dictionary `audiometry` that is organized by ear ('Left' and 'Right'). Each side contains another dictionary with the frequency of pure tones played and the measured thresholds in dB HL. For example:
+The function `parse_audiometry()` takes in an xml file and outputs a dictionary `audiogram` that is organized by ear ('Left' and 'Right'). Each side contains another dictionary with the frequency of pure tones played and the measured thresholds in dB HL. For example:
 
 ``` 
 >>> from audiometry import parse_audiometry
