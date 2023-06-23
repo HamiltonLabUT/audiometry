@@ -1,5 +1,5 @@
 # audiometry
-Python scripts for plotting audiograms and related data from [Interacoustics Equinox 2.0 audiometer](https://www.interacoustics.com/us/audiometry/clinical/equinox) and [Otoaccess software](https://www.interacoustics.com/us/otoaccess). Maybe similar scripts exist, but I haven't found them and wrote one myself.
+Python scripts for plotting audiograms and related data from [Interacoustics Equinox 2.0 audiometer](https://www.interacoustics.com/us/audiometry/clinical/equinox) and [Otoaccess software](https://www.interacoustics.com/us/otoaccess). Maybe similar scripts exist, but I haven't found them and wrote one myself. 
 
 To run, this assumes you have a directory with .xml files that were exported from the Otoaccess software. 
 Ours are named `[subj_id]_[date]_audiometry.xml`. If you name them this way, the function `main()` will show the subject ID as the title of each subplot.
